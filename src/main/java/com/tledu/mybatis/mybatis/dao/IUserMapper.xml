@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    namespace 是用于调用的时候的映射,对应绑定的接口类
+ -->
+<!--        property 	要将列结果映射到的字段或属性。 如果匹配的 JavaBeans 属性 存在于 给定的名称，然后将使用该名称。
+            否则，MyBatis 会寻找 给定 姓名。 在这两种情况下，您都可以使用通常的点来使用复杂的属性导航 符号。
+            为了 例如，您可以映射到简单的内容，例如： username，或者更多 复杂的 喜欢： address.street.number.-->
+<!--        column 	数据库中的列名，或别名列标签。 这是同一个字符串 那 通常会被传递给-->
+<mapper namespace="com.tledu.mybatis.mybatis.dao.IUserMapper">
+
+    <resultMap id="userMap" type="User" autoMapping="true">
+        <id column="id" property="user.id"></id>
+    </resultMap>
+
+
+    <!--    一对多查询(第二种方法)-->
+    <resultMap id="userAndaddress" type="User" >
+        <id column="id" property="id"></id>
+        <result property="username" column="username"></result>
+
+        <collection property="addressList" column="id" ofType="Address">
+            <id property="id" column="addrId"/>
+            <result property="addr" column="addr"/>
+        </collection>
+    </resultMap>
+
+    <!--    //模糊查询-->
+    <select id="findFuzzy" parameterType="String" resultType="User">
+        select * from t_user where username like concat('%',#{username},'%')
+    </select>
+    <!--//批量添加-->
+    <insert id="insertBatch" parameterType="User">
+        insert into t_user(username, password, nickname) values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.username},#{item.password},#{item.nickname})
+        </foreach>
+    </insert>
+
+    <!--    //批量删除-->
+    <delete id="deleteBatch" parameterType="User">
+        delete from t_user
+        where id in
+        <foreach collection="list" item="item" separator="," close=")" open="(">
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="getUserAndAddrById2" parameterType="Integer" resultMap="userAndaddress">
+        select *  from t_user tu left join t_address ta
+                                           on tu.id = ta.user_id
+        where tu.id=#{id}
+    </select>
+
+
+</mapper>

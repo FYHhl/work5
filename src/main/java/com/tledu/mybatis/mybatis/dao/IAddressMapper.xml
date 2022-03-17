@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    namespace 是用于调用的时候的映射
+ -->
+<mapper namespace="com.tledu.mybatis.mybatis.dao.IAddressMapper">
+
+    <resultMap id="userMap" type="User" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+        <result column="nickname" property="nickname" />
+    </resultMap>
+
+    <select id="getUserById2" parameterType="Integer" resultType="User">
+        select * from t_user where id=#{id}
+    </select>
+
+    <!--    模糊查询-->
+    <select id="selectUserLike" parameterType="String" resultType="User">
+        select * from t_user where username like concat('%',#{username},'%')
+    </select>
+    <!--    动态查询-->
+    <select id="selectTest" parameterType="User" resultMap="userMap">
+        select id, username,nickname as nick,password from t_user
+        <where>
+            <if test="user.username!=null and user.username != ''">
+                and username=#{user.username}
+            </if>
+            <if test="user.nickname!=null and user.nickname != ''">
+                and nickname=#{user.nickname}
+            </if>
+        </where>
+    </select>
+
+    <!--    动态更新-->
+    <update id="updateTest" parameterType="User">
+        update t_user
+        <set>
+            <if test="user.username!=null and user.username != ''">
+                username=#{user.username},
+            </if>
+            <if test="user.nickname!=null and user.nickname != ''">
+                nickname=#{user.nickname},
+            </if>
+        </set>
+        where id=#{user.id}
+    </update>
+
+    <!--    动态删除-->
+    <delete id="deleteBatch">
+        delete from t_user
+        where id in
+        <foreach collection="list" separator="," item="item" open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!--    动态增加-->
+    <insert id="insertBatch" >
+        insert into t_user (username, password, nickname) values
+        <foreach collection="list" item="item" separator="," >
+            (#{item.username},#{item.password},#{item.nickname})
+        </foreach>
+    </insert>
+</mapper>
